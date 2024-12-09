@@ -17,3 +17,5 @@ This script supports CLI args and env vars. Both settings are defined below:
     * the random seed for the number of files to create per directory (defaults to 5)
 * -h/--help
     * Help for the script
+
+While each folder (and the files within it) will get different modification times, users _can_ just treat the generated files as a folder structure to back up.

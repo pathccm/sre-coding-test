@@ -3,14 +3,14 @@
 ###
 # Create a folder structure like
 # - folders
-# - - day1
+# - - folder1
 # - - - 1
 # - - - - 0.txt
-# - - day2
+# - - folder2
 # - - - 1
 # - - - - 0.txt
 # with all files/folders creation and modification times set to <days> in the past
-# e.g. day1 -> one day in the past, day2 -> two days, etc.
+# e.g. folder1 -> one day in the past, folder2 -> two days, etc.
 # This structure should give us a nice framework to practice making some backups from!
 #
 # *****NOTE*****
