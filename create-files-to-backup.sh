@@ -25,9 +25,9 @@ pushd "${SCRIPT_DIR}" > /dev/null || exit 1
 
 set +e
 if date --version > /dev/null 2>&1; then
-	DATETYPE="darwin"
-else
 	DATETYPE="gnu"
+else
+	DATETYPE="darwin"
 fi
 set -e
 
