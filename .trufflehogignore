@@ -1,0 +1,21 @@
+# See https://help.github.com/ignore-files/ for more about ignoring files.
+
+node_modules/
+
+# IDE
+.idea
+.vscode/*
+
+# Mac OS
+.*/.DS_Store
+
+.terraform*
+yarn-error.log
+.yarn
+.yarnrc
+.firebase
+
+.*/secrets.env
+secrets.env
+.*/.venv/
+.pnp*

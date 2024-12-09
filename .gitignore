@@ -1,0 +1,105 @@
+# secrets management
+**/secrets.env
+secrets.env
+**/.secrets-*.env
+.secrets-*.env
+**/.*-secrets.json
+.*-secrets.json
+**/.secrets.env
+**/.import.secrets.env
+.secrets.env
+.import.secrets.env
+**/.env
+.env
+**/.*-secrets.json
+.*-secrets.json
+secrets.local.json
+
+# terraform files
+**/.terraform/**
+*.tfstate
+*.tfstate.*
+terraform.tfvars.json
+
+# AVRO
+*.avsc
+**/*.avsc
+
+# local dev files
+.strta-stats/
+.task/
+**/Brewfile.lock.json
+pre-commit.log
+.vscode/*
+!.vscode/launch.template.json
+!.vscode/extensions.json.vscode
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.local
+supervisord.log
+supervisord.pid
+.solargraph.yml
+**/.nicegui
+.nicegui
+.idea
+
+# node
+**/node_modules/**
+dist/
+dist-ssr
+**/*.tsbuildinfo
+**/coverage/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+*.http
+.next/
+next-env.d.ts
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+
+# ruby
+tmp/
+.bundle/
+shared/pids/
+.irbrc
+
+# python
+**/__pycache__
+__pycache__
+**/.mypy_cache
+.mypy_cache
+**/.ruff_cache
+.ruff_cache
+
+# data folders for docker containers
+pgdata/
+kafka-data/
+redis-data/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# avro files
+terraform/*/schemas/gen/
+terraform/schemas/gen/
+terraform/*/test.txt
+terraform/*/.test.txt.crc
+terraform/test.txt
+terraform/.test.txt.crc

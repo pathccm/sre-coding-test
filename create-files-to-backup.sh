@@ -24,8 +24,7 @@ SCRIPT_DIR=$(cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)
 pushd "${SCRIPT_DIR}" > /dev/null || exit 1
 
 set +e
-date --version > /dev/null 2>&1
-if [[ $? -ne 0 ]]; then
+if date --version > /dev/null 2>&1; then
 	DATETYPE="darwin"
 else
 	DATETYPE="gnu"
@@ -42,13 +41,13 @@ function help() {
 	echo "$0"
 	printf "\nThis script supports CLI args and env vars. Both settings are defined below:\n"
 	echo "--root-dir/ROOT_DIR"
-	printf "\tset the folder we'll create all files/etc. under (defaults to ./${ROOT_DIR})\n"
+	printf "\tset the folder we'll create all files/etc. under (defaults to ./(%s)\n" "${ROOT_DIR}"
 	echo "--days/DAYS"
-	printf "\tthe number of days to create files/etc. for (defaults to ${DAYS})\n"
+	printf "\tthe number of days to create files/etc. for (defaults to %s)\n" "${DAYS}"
 	echo "-d/--dirs/DIR_RAND_ROOT"
-	printf "\tthe random seed for the number of directories to create per day (defaults to ${DIR_RAND_ROOT})\n"
+	printf "\tthe random seed for the number of directories to create per day (defaults to %s)\n" "${DIR_RAND_ROOT}"
 	echo "-f/--files/FILE_RAND_ROOT"
-	printf "\tthe random seed for the number of files to create per directory (defaults to ${FILE_RAND_ROOT})\n"
+	printf "\tthe random seed for the number of files to create per directory (defaults to %s)\n" "${FILE_RAND_ROOT}"
 	exit
 }
 
@@ -73,8 +72,7 @@ while [[ $# -gt 0 ]]; do
 			;;
 		-h|--help)
 			help
-			exit 0
-		;;
+			;;
 	*) echo "Unknown CLI option for 'create-folders.sh': $1"
 		exit 1
 		;;
@@ -87,8 +85,8 @@ function newTimes() {
 		datestr="$(date -d "$2 days ago" "+%Y-%m-%dT%H:%M:%S")"
 		modifystr="$(date -d "$2 days ago" "+%Y%m%d%H%M.%S")"
 	else
-		datestr="$(date -v-$2d "+%Y-%m-%dT%H:%M:%S")"
-		modifystr="$(date -v-$2d "+%Y%m%d%H%M.%S")"
+		datestr="$(date -v-"$2"d "+%Y-%m-%dT%H:%M:%S")"
+		modifystr="$(date -v-"$2"d "+%Y%m%d%H%M.%S")"
 	fi
 	# GNU touch doesn't support `-d -t` on one line
 	touch -d "${datestr}" "$1"
@@ -130,7 +128,7 @@ for ((day=1;day<=DAYS;day++)); do
 		newTimes "${i}" "${day}"
 	done
 	popd > /dev/null || exit 1
-	newTimes "day${day}" "${day}"
+	newTimes "folder${day}" "${day}"
 done
 # back up the stack to our script directory
 popd > /dev/null || exit 1
