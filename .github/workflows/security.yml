@@ -1,5 +1,11 @@
 name: Security Scans
 
+permissions:
+  contents: read
+  id-token: write
+  issues: write
+  pull-requests: write
+
 on:
   workflow_dispatch:
     inputs: {}
@@ -7,5 +13,53 @@ on:
   merge_group: {}
 
 jobs:
-  security-scans:
-    uses: pathccm/shared-github-actions/.github/workflows/security.yml@main
+  TruffleHog:
+    runs-on: ubuntu-latest
+    if: "github.actor != 'dependabot[bot]' &&
+        github.event.head_commit.message != 'Initial commit'"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: install deps
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sudo sh -s -- -b /usr/local/bin
+      - name: run trufflehog
+        run: |
+          if [[ -f scripts/utils/security.sh ]]; then
+            bash scripts/utils/security.sh
+          else
+            bash scripts/security.sh
+          fi
+        env:
+          TRUFFLE_ONLY: true
+
+  semgrep:
+    runs-on: ubuntu-latest
+    if: "github.actor != 'dependabot[bot]' &&
+        github.event.head_commit.message != 'Initial commit'"
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+      - name: install deps
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install --no-install-recommends -yqq python3-pip python3-wheel
+          python3 -m pip install -q --no-cache-dir semgrep
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+      # semgrep rulesets are defined in our job here to make for the most portable scan
+      # additional rulesets can be found here: https://semgrep.dev/explore
+      - name: semgrep checks
+        run: |
+          if [[ -f scripts/utils/security.sh ]]; then
+            bash scripts/utils/security.sh
+          else
+            bash scripts/security.sh
+          fi
+        env:
+          SEMGREP_ONLY: true

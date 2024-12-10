@@ -1,38 +1,220 @@
 name: Validate/Test files
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      non-inclusive-fail:
+        required: false
+        default: true
+        type: boolean
+      yamllint_config_file:
+        type: string
+        # Default to an SRE supplied config
+        default: "${{ github.workspace }}/.yamllint-config.yaml"
+        required: false
+      markdownlint_config_file:
+        type: string
+        # Default to an SRE supplied config
+        default: "${{ github.workspace }}/.markdownlint.json"
+        required: false
+      python_version:
+        required: false
+        type: string
+        default: '3.x'
+      python_src_path:
+        required: false
+        type: string
+        default: '.'
+      skip_python_linting:
+        required: false
+        type: boolean
+        default: false
   push: {}
   merge_group: {}
 
 jobs:
-  general-linting:
-    name: General Linting
-    uses: pathccm/shared-github-actions/.github/workflows/general-linting.yml@main
-    secrets:
-      terraform-token: ${{ secrets.TF_API_TOKEN }}
-
-  js-linting:
-    name: JS/TS Linting
+  changed-files:
+    name: Get Changed files
     runs-on: ubuntu-latest
-    env:
-      NODE_AUTH_TOKEN: ${{ github.token }}
-      NODE_ENV: test
-      HOST: 0.0.0.0
-      PORT: 8080
+    outputs:
+      yaml: ${{ steps.changed-files.outputs.yaml_any_modified == 'true' }}
+      yaml_files: ${{ steps.changed-files.outputs.yaml_all_changed_files }}
+      shell: ${{ steps.changed-files.outputs.shell_any_modified == 'true' }}
+      shell_files: ${{ steps.changed-files.outputs.shell_all_changed_files }}
+      markdown: ${{ steps.changed-files.outputs.markdown_any_modified == 'true' }}
+      markdown_files: ${{ steps.changed-files.outputs.markdown_all_changed_files }}
+      python: ${{ steps.changed-files.outputs.python_any_modified == 'true' }}
+      python_files: ${{ steps.changed-files.outputs.python_all_changed_files }}
+      dockerfiles: ${{ steps.changed-files.outputs.dockerfiles_any_modified == 'true' }}
+      dockerfiles_files: ${{ steps.changed-files.outputs.dockerfiles_all_changed_files }}
+      gh_action_files: ${{ steps.changed-files.outputs.gh_actions_all_changed_files }}
+      gh_actions: ${{ steps.changed-files.outputs.gh_actions_any_modified == 'true' }}
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
         with:
-          version: 9
-      - uses: actions/setup-node@v4
+          fetch-depth: 0 # Fetch Depth 0 == Pull the whole repo and all history
+      - uses: tj-actions/changed-files@v45
+        id: changed-files
         with:
-          node-version: 22
-          cache: pnpm
-      # install base deps
-      - name: install deps
-        run: pnpm i --frozen-lockfile
-      - name: lint files
-        run: pnpm -r --if-present run --stream lint
-      - name: run tests
-        run: pnpm run test
+          # For files_yaml, the general idea is to organize the files we want to scan ourselves based on globbing.
+          # By organizing, we gain several things:
+          # 1. The mapping header (e.g. shell) becomes an output by the changed-files action, which we can use in conditionals (see https://github.com/tj-actions/changed-files?tab=readme-ov-file#outputs-)
+          # 2. The conditionals can help us speed up linting by only running jobs for changed files, avoiding excess runtime and spend
+          # 3. Each output can optionally be passed around for future use (say, for SAST scans or bot behaviors)
+          files_yaml: |
+            shell:
+              - '**/*.sh'
+              - '**/*.zsh'
+            yaml:
+              - '**/*.y*ml'
+            python:
+              - '**/*.py'
+            dockerfiles:
+              - 'Dockerfile*'
+              - 'docker-compose*'
+            taskfiles:
+              - 'Taskfile.yml'
+              - 'taskfiles/*'
+            markdown:
+              - '**/*.md'
+            gh_actions:
+              - '.github/workflows/*.y*ml'
+
+  yamllint:
+    name: Yaml Linting
+    runs-on: ubuntu-latest
+    needs: [changed-files]
+    if: "github.event.head_commit.message != 'Initial commit' &&
+         github.actor != 'dependabot[bot]'"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: yaml lint
+        uses: reviewdog/action-yamllint@v1
+        with:
+          github_token: ${{ github.token }}
+          reporter: github-pr-review
+          fail_on_error: true
+          level: info
+          yamllint_flags: "--no-warnings -c ${{ inputs.yamllint_config_file }} ${{ needs.changed-files.outputs.yaml_files }}"
+
+  markdownlint:
+    name: markdownlint
+    runs-on: ubuntu-latest
+    needs: [changed-files]
+    if: "github.event.head_commit.message != 'Initial commit' &&
+         github.actor != 'dependabot[bot]' &&
+         needs.changed-files.outputs.markdown == 'true'"
+    steps:
+      - uses: actions/checkout@v4
+      - name: markdownlint
+        uses: reviewdog/action-markdownlint@v0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review
+          level: info
+          # -d == check dot files, -c == config file location
+          markdownlint_flags: "-d -c ${{ inputs.markdownlint_config_file }} ${{ needs.changed-files.outputs.markdown_files }}"
+          fail_on_error: true
+
+  shelllint:
+    name: Shell Lint
+    needs: [changed-files]
+    runs-on: ubuntu-latest
+    if: "github.event.head_commit.message != 'Initial commit' &&
+         github.actor != 'dependabot[bot]' &&
+         needs.changed-files.outputs.shell == 'true'"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Reviewdog
+        uses: reviewdog/action-setup@v1
+        with:
+          reviewdog_version: latest
+      - name: Reviewdog Shellcheck
+        uses: reviewdog/action-shellcheck@v1
+        with:
+          shellcheck_flags: "-s bash -x"
+          reporter: github-pr-review
+          fail_on_error: true
+          level: info
+
+  actionlint:
+    name: actionlint
+    needs: [changed-files]
+    if: "github.event.head_commit.message != 'Initial commit' &&
+         github.actor != 'dependabot[bot]' && needs.changed-files.outputs.gh_actions == 'true'"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git clone repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - name: Run actionlint
+        uses: reviewdog/action-actionlint@v1
+        with:
+          reporter: github-pr-review
+          fail_on_error: true
+
+  dockerlint:
+    name: Dockerfile Lint
+    needs: [changed-files]
+    runs-on: ubuntu-latest
+    if: "github.event.head_commit.message != 'Initial commit' &&
+         github.actor != 'dependabot[bot]' &&
+         needs.changed-files.outputs.dockerfiles == 'true'"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Reviewdog
+        uses: reviewdog/action-setup@v1
+        with:
+          reviewdog_version: latest
+      - name: Reviewdog Hadolint
+        uses: reviewdog/action-hadolint@v1
+        with:
+          reporter: github-pr-review
+          fail_on_error: true
+          level: info
+          github_token: ${{ github.token }}
+
+  non-inclusive:
+    name: Scan for non-inclusive language
+    runs-on: ubuntu-latest
+    if: "github.event.head_commit.message != 'Initial commit' &&
+         github.actor != 'dependabot[bot]'"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: woke
+        uses: get-woke/woke-action-reviewdog@v0
+        with:
+          # Cause the check to fail on any rule violations
+          fail-on-error: ${{ inputs.non-inclusive-fail }}
+          reporter: github-pr-review
+
+  pythonlint:
+    name: Python Lint
+    needs: [changed-files]
+    runs-on: ubuntu-latest
+    if: "github.event.head_commit.message != 'Initial commit' &&
+         github.actor != 'dependabot[bot]' &&
+         needs.changed-files.outputs.python == 'true' && ! inputs.skip_python_linting"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "${{ inputs.python_version }}"
+      - name: Ruff Format
+        uses: astral-sh/ruff-action@v2
+        with:
+          src: "${{ inputs.python_src_path }}"
+          args: "format --check"
+          changed-files: "true"
+      - name: Ruff Check
+        uses: astral-sh/ruff-action@v2
+        with:
+          src: "${{ inputs.python_src_path }}"
+          changed-files: "true"
