@@ -9,13 +9,11 @@ on:
         type: boolean
       yamllint_config_file:
         type: string
-        # Default to an SRE supplied config
-        default: "${{ github.workspace }}/.yamllint-config.yaml"
+        default: ".yamllint-config.yaml"
         required: false
       markdownlint_config_file:
         type: string
-        # Default to an SRE supplied config
-        default: "${{ github.workspace }}/.markdownlint.json"
+        default: ".markdownlint.json"
         required: false
       python_version:
         required: false

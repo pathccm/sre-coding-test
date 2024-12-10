@@ -1,0 +1,72 @@
+# general
+.git/
+coverage/
+**/coverage/
+**/.nicegui
+.nicegui
+.idea
+
+# local secrets files
+**/secrets.env
+secrets.env
+**/.secrets-*.env
+.secrets-*.env
+**/.*-secrets.json
+.*-secrets.json
+**/.secrets.env
+**/.import.secrets.env
+.secrets.env
+.import.secrets.env
+**/.env
+.env
+**/.*-secrets.json
+.*-secrets.json
+secrets.local.json
+
+# local docker data
+pgdata/
+kafka-data/
+redis-data/
+
+# local dev
+.task/
+.vscode/
+.idea/
+
+# node
+.yarn/
+.npm/
+**/.next/**
+.next/
+**/node_modules/**
+node_modules/
+**/.terraform/**
+.pnp*
+**/.turbo/**
+.turbo/
+dist/
+**/dist/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+next-env.d.ts
+test-results/
+playwright-report/
+
+# ruby
+.bundle/
+**/tmp/**
+tmp/
+
+# python
+*.pyc
+**/*.pyc
+**/__pycache__/
+**/.venv/
+.venv/
+**/venv/
+venv/
+**/.mypy_cache/
+.mypy_cache/
+**/.pytest_cache/
+.pytest_cache/

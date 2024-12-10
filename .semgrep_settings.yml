@@ -1,0 +1,40 @@
+# additional rulesets can be found here: https://semgrep.dev/explore
+rulesets:
+  - p/ci
+  - p/command-injection
+  - p/cwe-top-25
+  - p/dockerfile
+  - p/docker-compose
+  - p/github-actions
+  - p/jwt
+  - p/lockfiles
+  - p/nodejs
+  - p/owasp-top-ten
+  # - p/python
+  - p/react
+  # - p/ruby
+  - p/security-audit
+  - p/sql-injection
+  - p/supply-chain
+  - p/terraform
+  - p/typescript
+  - p/xss
+excluded:
+  # we don't directly host any containers, so ensuring an un-privileged user is extra work (currently)
+  - dockerfile.security.missing-user.missing-user
+  - dockerfile.security.missing-user-entrypoint.missing-user-entrypoint
+  # similar to ignoring USER in dockerfiles, we ignore privileges and writable filesystems in compose files
+  - yaml.docker-compose.security.no-new-privileges.no-new-privileges
+  - yaml.docker-compose.security.writable-filesystem-service.writable-filesystem-service
+  # hard to properly comment this out when it shows up
+  - html.security.audit.missing-integrity.missing-integrity
+  # largely affects email-template-test-server, which is hard to fully fix
+  - javascript.lang.security.audit.detect-non-literal-fs-filename.detect-non-literal-fs-filename
+  # ignored github action rules
+  - yaml.github-actions.security.third-party-action-not-pinned-to-commit-sha.third-party-action-not-pinned-to-commit-sha
+  # ignored terraform rules (mutable ECR images, cloudwatch group configuration, etc.)
+  - terraform.aws.security.aws-secretsmanager-secret-unencrypted.aws-secretsmanager-secret-unencrypted
+  - terraform.aws.security.aws-ecr-mutable-image-tags.aws-ecr-mutable-image-tags
+  - terraform.aws.security.aws-cloudwatch-log-group-unencrypted.aws-cloudwatch-log-group-unencrypted
+  - terraform.aws.security.aws-cloudwatch-log-group-no-retention.aws-cloudwatch-log-group-no-retention
+  - terraform.aws.security.aws-lambda-x-ray-tracing-not-active.aws-lambda-x-ray-tracing-not-active
