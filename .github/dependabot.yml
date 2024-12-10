@@ -5,70 +5,8 @@ registries:
     type: npm-registry
     url: https://npm.pkg.github.com
     token: ${{ github.token }}
-  # tf-legacy-deploy:
-  #   type: git
-  #   url: https://github.com/pathccm/terraform-aws-ecs-app-deployment
-  #   username: x-access-token
-  #   password: ${{ github.token }}
-  # tf-deploy:
-  #   type: git
-  #   url: https://github.com/pathccm/terraform-aws-ecs-app
-  #   username: x-access-token
-  #   password: ${{ github.token }}
-  # tf-task-deploy:
-  #   type: git
-  #   url: https://github.com/pathccm/terraform-aws-ecs-task
-  #   username: x-access-token
-  #   password: ${{ github.token }}
-  # tf-task-scheduler:
-  #   type: git
-  #   url: https://github.com/pathccm/terraform-aws-ecs-task-scheduler
-  #   username: x-access-token
-  #   password: ${{ github.token }}
-  # tf-rds-pg13:
-  #   type: git
-  #   url: https://github.com/pathccm/terraform-aws-rds-postgresql13
-  #   username: x-access-token
-  #   password: ${{ github.token }}
-  # tf-kafka-producer:
-  #   type: git
-  #   url: https://github.com/pathccm/terraform-aws-kafka-producer
-  #   username: x-access-token
-  #   password: ${{ github.token }}
-  # tf-kafka-consumer:
-  #   type: git
-  #   url: https://github.com/pathccm/terraform-aws-kafka-consumer
-  #   username: x-access-token
-  #   password: ${{ github.token }}
 
 updates:
-  # Enable version updates for npm
-  - package-ecosystem: "npm"
-    # Look for `package.json` and `lock` files in the `root` directory
-    directory: "/"
-    registries:
-      - private-github-registry
-    # Check the npm registry for updates every day (weekdays)
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 2
-    groups:
-      prod-dependencies:
-        dependency-type: "production"
-      dev-dependencies:
-        dependency-type: "development"
-
-  # Enable version updates for Docker
-  - package-ecosystem: "docker"
-    # Look for a `Dockerfile` in the `root` directory
-    directory: "/"
-    schedule:
-      interval: "monthly"
-    open-pull-requests-limit: 1
-    groups:
-      docker:
-        dependency-type: "production"
-
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -76,17 +14,6 @@ updates:
     open-pull-requests-limit: 1
     groups:
       actions:
-        dependency-type: "production"
-
-  # Enable version updates for terraform
-  - package-ecosystem: "terraform"
-    directory: "/"
-    # Check for updates every day (weekdays)
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 1
-    groups:
-      terraform:
         dependency-type: "production"
 
   # Enable version updates for pipfile/python
