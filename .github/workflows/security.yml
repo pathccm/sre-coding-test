@@ -1,0 +1,11 @@
+name: Security Scans
+
+on:
+  workflow_dispatch:
+    inputs: {}
+  push: {}
+  merge_group: {}
+
+jobs:
+  security-scans:
+    uses: pathccm/shared-github-actions/.github/workflows/security.yml@main

@@ -1,0 +1,38 @@
+name: Validate/Test files
+
+on:
+  workflow_dispatch: {}
+  push: {}
+  merge_group: {}
+
+jobs:
+  general-linting:
+    name: General Linting
+    uses: pathccm/shared-github-actions/.github/workflows/general-linting.yml@main
+    secrets:
+      terraform-token: ${{ secrets.TF_API_TOKEN }}
+
+  js-linting:
+    name: JS/TS Linting
+    runs-on: ubuntu-latest
+    env:
+      NODE_AUTH_TOKEN: ${{ github.token }}
+      NODE_ENV: test
+      HOST: 0.0.0.0
+      PORT: 8080
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      # install base deps
+      - name: install deps
+        run: pnpm i --frozen-lockfile
+      - name: lint files
+        run: pnpm -r --if-present run --stream lint
+      - name: run tests
+        run: pnpm run test
