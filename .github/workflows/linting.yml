@@ -206,13 +206,13 @@ jobs:
         with:
           python-version: "${{ inputs.python_version }}"
       - name: Ruff Format
-        uses: astral-sh/ruff-action@v2
+        uses: astral-sh/ruff-action@v3
         with:
           src: "${{ inputs.python_src_path }}"
           args: "format --check"
           changed-files: "true"
       - name: Ruff Check
-        uses: astral-sh/ruff-action@v2
+        uses: astral-sh/ruff-action@v3
         with:
           src: "${{ inputs.python_src_path }}"
           changed-files: "true"
